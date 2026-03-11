@@ -52,12 +52,14 @@ public class Card : MonoBehaviour
     public void Show()
     {
         if (isRevealed) return;
+        cardController.PlayAudio(0);
         isRevealed = true;
         StartCoroutine(Flip(cardController.GetIcon(spriteId)));
     }
 
     public void Hide()
     {
+        cardController.PlayAudio(0);
         if (!isRevealed) return;
         isRevealed = false;
         StartCoroutine(Flip(cardController.GetIcon(defaultSpriteId)));

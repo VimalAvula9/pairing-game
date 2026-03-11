@@ -7,6 +7,8 @@ public class CardController : MonoBehaviour
     [SerializeField] Card cardPrefab;
     [SerializeField] Transform gridTransform;
     [SerializeField] public Sprite[] iconsCollection;
+    [SerializeField] private AudioClip[] audioClips;
+    [SerializeField] public AudioSource audioSource;
 
     [Header("Menu Controller")]
     [SerializeField] private MenuController menuController;
@@ -160,12 +162,14 @@ public class CardController : MonoBehaviour
 
         if (cards[cardA].GetSpriteId() != cards[cardB].GetSpriteId())
         {
+            PlayAudio(2);
             cards[cardA].Hide();
             cards[cardB].Hide();
             SaveGame();
         }
         else
         {
+            PlayAudio(1);
             SaveGame();
             CheckGameOver();
         }
@@ -178,9 +182,15 @@ public class CardController : MonoBehaviour
         {
             if (!cards[i].GetIsRevealed()) return;
         }
+        PlayAudio(3);
         ClearBoard();
         PlayerPrefs.DeleteKey("save");
         PlayerPrefs.Save();
         menuController.GameOver(turns);
+    }
+
+    public void PlayAudio(int id)
+    {
+        audioSource.PlayOneShot(audioClips[id]);    
     }
 }
