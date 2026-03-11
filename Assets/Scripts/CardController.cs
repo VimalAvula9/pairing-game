@@ -12,8 +12,8 @@ public class CardController : MonoBehaviour
     [SerializeField] private MenuController menuController;
 
     private List<Card> cards = new List<Card>();
-    private Card firstSelected;
-    private Card secondSelected;
+    private int firstSelectedCardId;
+    private int secondSelectedCardId;
     private int turns;
 
     public Sprite GetIcon(int id)
@@ -22,6 +22,7 @@ public class CardController : MonoBehaviour
     }
     public void LoadNewGame(int rows, int columns)
     {
+        ClearBoard();
         int totalCards = rows * columns;
 
         if (totalCards % 2 != 0)
@@ -38,18 +39,64 @@ public class CardController : MonoBehaviour
             return;
         }
 
+        this.turns = 0;
         menuController.UpdateTurns(0);
         CreateCards(noOfIcons);
     }
 
-    void LoadSavedGame(List<CardData> savedCards)
+    public void LoadSavedGame()
     {
-        for (int i = 0; i < savedCards.Count; i++)
+        if (!PlayerPrefs.HasKey("save"))
+        {
+            Debug.Log("No saved game found");
+            return;
+        }
+        ClearBoard();
+        string json = PlayerPrefs.GetString("save");
+
+        GameData gameData = JsonUtility.FromJson<GameData>(json);
+
+        this.turns = gameData.turns;
+        menuController.UpdateTurns(this.turns);
+        this.firstSelectedCardId = gameData.firstSelectedCardId;
+        this.secondSelectedCardId = gameData.secondSelectedCardId;
+
+        for (int i = 0; i < gameData.cardDatas.Count; i++)
         {
             Card card = Instantiate(cardPrefab, gridTransform);
-            card.Initialize(this, 0, savedCards[i].spriteId, savedCards[i].isRevealed);
+            card.Initialize(this, i, 0, gameData.cardDatas[i].spriteId, gameData.cardDatas[i].isRevealed);
             cards.Add(card);
         }
+    }
+
+    public void SaveGame()
+    {
+        List<CardData> cardDatas = new List<CardData>();
+
+        foreach (Card card in cards)
+        {
+            cardDatas.Add(new CardData(card.GetSpriteId(), card.GetIsRevealed()));
+        }
+
+        GameData gameData = new GameData(turns, firstSelectedCardId, secondSelectedCardId, cardDatas);
+
+        string json = JsonUtility.ToJson(gameData);
+
+        PlayerPrefs.SetString("save", json);
+        PlayerPrefs.Save();
+    }
+
+    void ClearBoard()
+    {
+        foreach (Card card in cards)
+        {
+            Destroy(card.gameObject);
+        }
+
+        cards.Clear();
+
+        firstSelectedCardId = -1;
+        secondSelectedCardId = -1;
     }
 
     void ShuffleSprites(List<int> spritePairs)
@@ -81,42 +128,54 @@ public class CardController : MonoBehaviour
         for (int i = 0; i < spritePairs.Count; i++)
         {
             Card card = Instantiate(cardPrefab, gridTransform);
-            card.Initialize(this, 0, spritePairs[i], false);
+            card.Initialize(this, i, 0, spritePairs[i], false);
             cards.Add(card);
         }
     }
 
     public void CardSelected(Card card)
     {
-
         card.Show();
-
-        if (firstSelected == null)
+        if (firstSelectedCardId == -1)
         {
-            firstSelected = card;
-            return;
+            firstSelectedCardId = card.GetId();
         }
-
-        if (secondSelected == null)
+        else if (secondSelectedCardId == -1)
         {
             turns++;
             menuController.UpdateTurns(turns);
-            secondSelected = card;
-            StartCoroutine(CheckMatching(firstSelected, secondSelected));
-            firstSelected = null;
-            secondSelected = null;
+            secondSelectedCardId = card.GetId();
+            StartCoroutine(CheckMatching(firstSelectedCardId, secondSelectedCardId));
+            firstSelectedCardId = -1;
+            secondSelectedCardId = -1;
         }
+        SaveGame();
     }
 
-    IEnumerator CheckMatching(Card a, Card b)
+    IEnumerator CheckMatching(int cardA, int cardB)
     {
         yield return new WaitForSeconds(0.3f);
 
-        if (a.GetSpriteId() != b.GetSpriteId())
+        if (cards[cardA].GetSpriteId() != cards[cardB].GetSpriteId())
         {
-            a.Hide();
-            b.Hide();
+            cards[cardA].Hide();
+            cards[cardB].Hide();
+        }
+        else
+        {
+            CheckGameOver();
         }
     }
 
+    void CheckGameOver()
+    {
+        for (int i = 0; i < cards.Count; i++)
+        {
+            if (!cards[i].GetIsRevealed()) return;
+        }
+        ClearBoard();
+        PlayerPrefs.DeleteKey("save");
+        PlayerPrefs.Save();
+        menuController.GameOver(turns);
+    }
 }

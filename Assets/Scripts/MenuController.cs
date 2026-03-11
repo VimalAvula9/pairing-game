@@ -14,6 +14,9 @@ public class MenuController : MonoBehaviour
     [Header("Text")]
     [SerializeField] private TMP_Text turnsText;
 
+    [Header("Text")]
+    [SerializeField] private TMP_Text ScoreText;
+
     [Header("Game Controller")]
     [SerializeField] private CardController cardController;
 
@@ -28,16 +31,27 @@ public class MenuController : MonoBehaviour
     {
         startPanel.SetActive(false);
         boardSelectionPanel.SetActive(true);
+        gamePanel.SetActive(false);
     }
 
     public void OnLoadGameClicked()
     {
-        startPanel.SetActive(false);
-        gamePanel.SetActive(true);
+        if (PlayerPrefs.HasKey("save"))
+        {
+            startPanel.SetActive(false);
+            boardSelectionPanel.SetActive(false);
+            gamePanel.SetActive(true);
+            cardController.LoadSavedGame();
+        }
+        else
+        {
+            OnNewGameClicked();
+        }
     }
 
     public void StartBoard(int boardType)
     {
+        startPanel.SetActive(false);
         boardSelectionPanel.SetActive(false);
         gamePanel.SetActive(true);
 
@@ -66,7 +80,15 @@ public class MenuController : MonoBehaviour
         gamePanel.SetActive(false);
         boardSelectionPanel.SetActive(false);
         startPanel.SetActive(true);
+        
     }
+
+    public void GameOver(int turns)
+    {
+        ScoreText.text = "Score: " + turns;
+        BackToMainMenu();
+    }
+
 
     public void UpdateTurns(int turns)
     {
