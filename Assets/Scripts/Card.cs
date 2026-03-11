@@ -59,8 +59,8 @@ public class Card : MonoBehaviour
 
     public void Hide()
     {
-        cardController.PlayAudio(0);
         if (!isRevealed) return;
+        cardController.PlayAudio(0);
         isRevealed = false;
         StartCoroutine(Flip(cardController.GetIcon(defaultSpriteId)));
     }

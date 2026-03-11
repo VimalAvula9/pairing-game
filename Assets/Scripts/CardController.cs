@@ -17,6 +17,7 @@ public class CardController : MonoBehaviour
     private int firstSelectedCardId;
     private int secondSelectedCardId;
     private int turns;
+    private int matchedPairs = 0;
 
     public Sprite GetIcon(int id)
     {
@@ -41,8 +42,6 @@ public class CardController : MonoBehaviour
             return;
         }
 
-        this.turns = 0;
-        menuController.UpdateTurns(0);
         CreateCards(noOfIcons);
     }
 
@@ -54,12 +53,13 @@ public class CardController : MonoBehaviour
             return;
         }
         ClearBoard();
-        string json = PlayerPrefs.GetString("save");
 
+        string json = PlayerPrefs.GetString("save");
         GameData gameData = JsonUtility.FromJson<GameData>(json);
 
         this.turns = gameData.turns;
         menuController.UpdateTurns(this.turns);
+        this.matchedPairs = gameData.matchedPairs;
         this.firstSelectedCardId = gameData.firstSelectedCardId;
         this.secondSelectedCardId = gameData.secondSelectedCardId;
 
@@ -80,7 +80,7 @@ public class CardController : MonoBehaviour
             cardDatas.Add(new CardData(card.GetSpriteId(), card.GetIsRevealed()));
         }
 
-        GameData gameData = new GameData(turns, firstSelectedCardId, secondSelectedCardId, cardDatas);
+        GameData gameData = new GameData(turns, matchedPairs, firstSelectedCardId, secondSelectedCardId, cardDatas);
 
         string json = JsonUtility.ToJson(gameData);
 
@@ -97,8 +97,11 @@ public class CardController : MonoBehaviour
 
         cards.Clear();
 
+        this.turns = 0;
+        menuController.UpdateTurns(0);
         firstSelectedCardId = -1;
         secondSelectedCardId = -1;
+        matchedPairs = 0;
     }
 
     void ShuffleSprites(List<int> spritePairs)
@@ -170,6 +173,7 @@ public class CardController : MonoBehaviour
         else
         {
             PlayAudio(1);
+            matchedPairs++;
             SaveGame();
             CheckGameOver();
         }
@@ -178,19 +182,20 @@ public class CardController : MonoBehaviour
 
     void CheckGameOver()
     {
-        for (int i = 0; i < cards.Count; i++)
+        if (matchedPairs == cards.Count / 2)
         {
-            if (!cards[i].GetIsRevealed()) return;
+            PlayAudio(3);
+            PlayerPrefs.DeleteKey("save");
+            PlayerPrefs.Save();
+            menuController.GameOver(turns);
         }
-        PlayAudio(3);
-        ClearBoard();
-        PlayerPrefs.DeleteKey("save");
-        PlayerPrefs.Save();
-        menuController.GameOver(turns);
     }
 
     public void PlayAudio(int id)
     {
-        audioSource.PlayOneShot(audioClips[id]);    
+        if(id < audioClips.Length)
+        {
+            audioSource.PlayOneShot(audioClips[id]);
+        }
     }
 }
