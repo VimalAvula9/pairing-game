@@ -135,10 +135,13 @@ public class CardController : MonoBehaviour
 
     public void CardSelected(Card card)
     {
+        if (card.GetIsRevealed() || card.GetId() == firstSelectedCardId) return;
+
         card.Show();
         if (firstSelectedCardId == -1)
         {
             firstSelectedCardId = card.GetId();
+            SaveGame();
         }
         else if (secondSelectedCardId == -1)
         {
@@ -149,7 +152,6 @@ public class CardController : MonoBehaviour
             firstSelectedCardId = -1;
             secondSelectedCardId = -1;
         }
-        SaveGame();
     }
 
     IEnumerator CheckMatching(int cardA, int cardB)
@@ -160,11 +162,14 @@ public class CardController : MonoBehaviour
         {
             cards[cardA].Hide();
             cards[cardB].Hide();
+            SaveGame();
         }
         else
         {
+            SaveGame();
             CheckGameOver();
         }
+        
     }
 
     void CheckGameOver()

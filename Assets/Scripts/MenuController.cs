@@ -13,8 +13,6 @@ public class MenuController : MonoBehaviour
 
     [Header("Text")]
     [SerializeField] private TMP_Text turnsText;
-
-    [Header("Text")]
     [SerializeField] private TMP_Text ScoreText;
 
     [Header("Game Controller")]

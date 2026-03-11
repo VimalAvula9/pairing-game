@@ -52,14 +52,45 @@ public class Card : MonoBehaviour
     public void Show()
     {
         if (isRevealed) return;
-        icon.sprite = cardController.GetIcon(spriteId);
         isRevealed = true;
+        StartCoroutine(Flip(cardController.GetIcon(spriteId)));
     }
 
     public void Hide()
     {
         if (!isRevealed) return;
-        icon.sprite = cardController.GetIcon(defaultSpriteId);
         isRevealed = false;
+        StartCoroutine(Flip(cardController.GetIcon(defaultSpriteId)));
+    }
+
+    IEnumerator Flip(Sprite newSprite)
+    {
+        float duration = 0.15f;
+        float elapsed = 0f;
+
+        Quaternion startRotation = transform.rotation;
+        Quaternion midRotation = Quaternion.Euler(0, 90, 0);
+        Quaternion endRotation = Quaternion.Euler(0, 0, 0);
+
+        while (elapsed < duration)
+        {
+            transform.rotation = Quaternion.Lerp(startRotation, midRotation, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.rotation = midRotation;
+        icon.sprite = newSprite;
+
+        elapsed = 0f;
+
+        while (elapsed < duration)
+        {
+            transform.rotation = Quaternion.Lerp(midRotation, endRotation, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        transform.rotation = endRotation;
     }
 }
