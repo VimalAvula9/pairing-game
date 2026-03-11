@@ -4,6 +4,12 @@
 A memory card matching game prototype built using **Unity 2021 LTS**.  
 The implementation focuses on gameplay mechanics, requirement fulfillment, and clean code structure.
 
+## Run Instructions
+1. Clone the repository.
+2. Open the project using **Unity 2021 LTS**.
+3. Open the scene located at: **"Assets/Scenes/SampleScene.unity"**
+4. Press **Play** in the Unity Editor to start the game.
+
 ## Features
 
 - Card matching gameplay
