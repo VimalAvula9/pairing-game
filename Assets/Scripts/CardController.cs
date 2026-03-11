@@ -8,15 +8,19 @@ public class CardController : MonoBehaviour
     [SerializeField] Transform gridTransform;
     [SerializeField] public Sprite[] iconsCollection;
 
+    [Header("Menu Controller")]
+    [SerializeField] private MenuController menuController;
+
     private List<Card> cards = new List<Card>();
     private Card firstSelected;
     private Card secondSelected;
+    private int turns;
 
     public Sprite GetIcon(int id)
     {
         return iconsCollection[id];
     }
-    void LoadNewGame(int rows, int columns)
+    public void LoadNewGame(int rows, int columns)
     {
         int totalCards = rows * columns;
 
@@ -34,6 +38,7 @@ public class CardController : MonoBehaviour
             return;
         }
 
+        menuController.UpdateTurns(0);
         CreateCards(noOfIcons);
     }
 
@@ -94,6 +99,8 @@ public class CardController : MonoBehaviour
 
         if (secondSelected == null)
         {
+            turns++;
+            menuController.UpdateTurns(turns);
             secondSelected = card;
             StartCoroutine(CheckMatching(firstSelected, secondSelected));
             firstSelected = null;
@@ -112,9 +119,4 @@ public class CardController : MonoBehaviour
         }
     }
 
-    void Start()
-    {
-        LoadNewGame(2, 3);
-        // LoadSavedGame(cards);
-    }
 }
